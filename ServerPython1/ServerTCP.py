@@ -20,5 +20,6 @@ while True:                                 # listen until process killed
     while True:
         data = connection.recv(1024)        # read the client message
         if not data: break                  # Echo it back
-        connection.send(b'Echo => ' + data)   # send data using "b" to format string as byte literal (ASCII)
+        connection.send(b'Echo => ' + data) # send data using "b" to format string as byte literal (ASCII)
+        print('Client Says: ', data)
     connection.close()
