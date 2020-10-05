@@ -15,29 +15,29 @@ or
 
 import sys
 from socket import *
-serverHost = 'localhost'        # Default IP to connect to
-serverPort = 8000               # Default port number
+tcpserverHost = 'localhost'        # Default IP to connect to
+tcpserverPort = 7005               # Default port number
 
 commandLineActive = True
 
 messages = []  # Default text (ASCII) message
                                 # requires bytes: b'' to convert to byte literal
 if len(sys.argv) == 2:
-    serverHost = sys.argv[1]    # User has provided a server IP at cmd line arg 1
+    tcpserverHost = sys.argv[1]    # User has provided a server IP at cmd line arg 1
     if len(sys.argv) > 2:       # User-defined message from cmd line args 2
         messages = (x.encode() for x in sys.argv[2:])
 
-sockobj = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
-sockobj.connect((serverHost, serverPort))   # connect to server IP + port
+tcpsockobj = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
+tcpsockobj.connect((tcpserverHost, tcpserverPort))   # connect to server IP + port
 while commandLineActive:
     messages = []
     userCommand = input("command: ")
     if userCommand == "quit":
-        sockobj.close()
+        tcpsockobj.close()
         break;
     messages.append(bytes(userCommand, 'ascii'))
 
     for line in messages:
-        sockobj.send(line)                      # send user message
-        data = sockobj.recv(1024)               # read server response
+        tcpsockobj.send(line)                      # send user message
+        data = tcpsockobj.recv(1024)               # read server response
         print('Received From Server:', data)

@@ -7,19 +7,38 @@ and then echoes the message back to the client.
 """
 
 from socket import *
-myHost = ''                                 # '' to set the default IP to localhost
-myPort = 8000                               # Default port number
+tcpHost = ''                                 # '' to set the default IP to localhost
+tcpPort = 7005                               # Default port number
+udpPort = 7006
+udpSocketObject = socket(AF_INET, SOCK_DGRAM)
 
-sockobj = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
-sockobj.bind((myHost, myPort))              # bind it to server port number
-sockobj.listen(5)
+tcpSocketObject = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
+tcpSocketObject.bind((tcpHost, tcpPort))              # bind it to server port number
+tcpSocketObject.listen(5)
 
 while True:                                 # listen until process killed
-    connection, address = sockobj.accept()
-    print('Client Connection:', address)    # Print the connected client address
+    tcpConnection, tcpAddress = tcpSocketObject.accept()
+    print('Client Connection:', tcpAddress)    # Print the connected client address
     while True:
-        data = connection.recv(1024)        # read the client message
-        if not data: break                  # Echo it back
-        connection.send(b'Echo => ' + data) # send data using "b" to format string as byte literal (ASCII)
-        print('Client Says: ', data)
-    connection.close()
+        tcpData = tcpConnection.recv(1024)        # read the client message
+        if not tcpData: break
+        if tcpData == b'GET':
+            tcpConnection.send(b'GET Command sent')
+            print('Client Says: ', tcpData)
+            break
+#        udpSocketObject = socket(AF_INET, SOCK_DGRAM)
+#        udpSocketObject.bind(("", udpPort))
+        tcpConnection.send(b'Echo => ' + tcpData)   # Echo it back send data using "b" to format string as byte literal (ASCII)
+        print('Client Says: ', tcpData)
+#    tcpConnection.close()
+#!/usr/bin/python
+
+# from socket import *
+#
+# udpPort = 7006
+# udpSocketObject = socket(AF_INET, SOCK_DGRAM)
+# udpSocketObject.bind(("", udpPort))
+# print ("waiting on port:", udpPort)
+# while 1:
+#     udpData, udpAddr = udpSocketObject.recvfrom(1024)
+#     print ("Received: ", udpData, "From: ", udpAddr)
