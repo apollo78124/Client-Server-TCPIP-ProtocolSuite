@@ -15,8 +15,11 @@ or
 
 import sys
 from socket import *
+import select
 tcpserverHost = 'localhost'        # Default IP to connect to
 tcpserverPort = 7005               # Default port number
+udpPort = 7006
+udpHost = "localhost"
 
 commandLineActive = True
 
@@ -34,10 +37,30 @@ while commandLineActive:
     userCommand = input("command: ")
     if userCommand == "quit":
         tcpsockobj.close()
+        commandLineActive = False
         break;
     messages.append(bytes(userCommand, 'ascii'))
 
     for line in messages:
         tcpsockobj.send(line)                      # send user message
         data = tcpsockobj.recv(1024)               # read server response
-        print('Received From Server:', data)
+        print('Message from the Server:', data)
+    if userCommand == "GET":
+        udpSocket = socket(AF_INET, SOCK_DGRAM)
+        udpSocket.bind((udpHost, udpPort))
+        udpData, udpAddr = udpSocket.recvfrom(1024)
+        if udpData:
+            print("File name:", udpData)
+            file_name = udpData.strip()
+            f = open(file_name, 'wb')
+            while True:
+                ready = select.select([udpSocket], [], [], 3)
+                if ready[0]:
+                    udpData, udpAddr = udpSocket.recvfrom(1024)
+                    f.write(udpData)
+                else:
+                    print("%s Finish!" % file_name)
+                    f.close()
+                    break
+        udpSocket.close()
+
