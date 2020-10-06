@@ -6,6 +6,7 @@ and then echoes the message back to the client.
 
 """
 import time
+import select
 from socket import *
 tcpIP = ''                                 # '' to set the default IP to localhost
 tcpPort = 7005                               # Default port number
@@ -21,12 +22,12 @@ while True:                                 # listen until process killed
     tcpConnection, tcpAddress = tcpSocketObject.accept()
     print('Client Connection:', tcpAddress)    # Print the connected client address
     while True:
-        tcpData = tcpConnection.recv(1024)        # read the client message
-        if not tcpData: break
-        if tcpData == b'GET':
+        tcpCommandFromClient = tcpConnection.recv(1024)        # read the client message
+        if not tcpCommandFromClient: break
+        if tcpCommandFromClient == b'GET':
             tcpConnection.send(b'GET Command sent, file is to be sent shortly')
             file_name = "TestFile1.txt"
-            print('Client Says: ', tcpData)
+            print('Client Says: ', tcpCommandFromClient)
             udpSocketObject = socket(AF_INET, SOCK_DGRAM)
 #            udpSocketObject.bind((udpIP, udpPort))
             udpSocketObject.sendto(bytes(file_name, 'ascii'), (udpIP, udpPort))
@@ -46,10 +47,37 @@ while True:                                 # listen until process killed
             udpSocketObject.close()
             file.close()
             break
-#        udpSocketObject = socket(AF_INET, SOCK_DGRAM)
-#        udpSocketObject.bind(("", udpPort))
-        tcpConnection.send(b'Echo => ' + tcpData)   # Echo it back send data using "b" to format string as byte literal (ASCII)
-        print('Client Says: ', tcpData)
+        if tcpCommandFromClient == b'SEND':
+            udpSocket = socket(AF_INET, SOCK_DGRAM)
+            udpSocket.bind((udpIP, udpPort))
+            tcpConnection.send(b'SEND Command sent')
+            tcpData = tcpConnection.recv(1024)
+            if tcpData == b'NotExisting':
+                break
+            udpData, udpAddr = udpSocket.recvfrom(1024)
+            if udpData:
+                print("File name:", udpData)
+                file_name = udpData.strip()
+                f = open(file_name, 'wb')
+                tcpConnection.send(bytes("File Created", 'ascii'))
+                while True:
+                    ready = select.select([udpSocket], [], [], 3)
+                    if ready[0]:
+                        udpData, udpAddr = udpSocket.recvfrom(1024)
+                        f.write(udpData)
+                    else:
+                        print("%s Finish!" % file_name)
+                        udpSocket.close()
+                        f.close()
+                        break
+        else :
+            tcpConnection.send(b'Echo => ' + tcpCommandFromClient)   # Echo it back send data using "b" to format string as byte literal (ASCII)
+            print('Client Said: ', tcpCommandFromClient)
+ #           udpData, udpAddr = udpSocket.recvfrom(1024)    #Receive filename from the client.
+
+#       udpSocketObject = socket(AF_INET, SOCK_DGRAM)
+#       udpSocketObject.bind(("", udpPort))
+
     tcpConnection.close()
 #!/usr/bin/python
 

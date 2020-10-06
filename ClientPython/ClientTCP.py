@@ -17,29 +17,29 @@ import sys
 import time
 from socket import *
 import select
+import pathlib
 tcpserverHost = 'localhost'        # Default IP to connect to
 tcpserverPort = 7005               # Default port number
 udpPort = 7006
-udpHost = "localhost"
+udpIP = "localhost"
+buffer = 1024
 
 commandLineActive = True
 
 messages = []  # Default text (ASCII) message
                                 # requires bytes: b'' to convert to byte literal
-if len(sys.argv) == 2:
-    tcpserverHost = sys.argv[1]    # User has provided a server IP at cmd line arg 1
-    if len(sys.argv) > 2:       # User-defined message from cmd line args 2
-        messages = (x.encode() for x in sys.argv[2:])
 
-tcpsockobj = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
-tcpsockobj.connect((tcpserverHost, tcpserverPort))   # connect to server IP + port
+#tcpsockobj = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
+#tcpsockobj.connect((tcpserverHost, tcpserverPort))   # connect to server IP + port
 while commandLineActive:
     messages = []
     userCommand = input("command: ")
+    tcpsockobj = socket(AF_INET, SOCK_STREAM)
+    tcpsockobj.connect((tcpserverHost, tcpserverPort))
     if userCommand == "quit":
         tcpsockobj.close()
         commandLineActive = False
-        break;
+        break
     messages.append(bytes(userCommand, 'ascii'))
 
     for line in messages:
@@ -48,13 +48,12 @@ while commandLineActive:
         print('Message from the Server:', data)
     if userCommand == "GET":
         udpSocket = socket(AF_INET, SOCK_DGRAM)
-        udpSocket.bind((udpHost, udpPort))
+        udpSocket.bind((udpIP, udpPort))
         udpData, udpAddr = udpSocket.recvfrom(1024)
         if udpData:
             print("File name:", udpData)
             file_name = udpData.strip()
             f = open(file_name, 'wb')
-            time.sleep(3)
             tcpsockobj.send(bytes("File Created", 'ascii'))
             while True:
                 ready = select.select([udpSocket], [], [], 3)
@@ -66,4 +65,34 @@ while commandLineActive:
                     f.close()
                     break
         udpSocket.close()
+        tcpsockobj.close()
+    if userCommand == "SEND":
+        fileToSend = input("Type the name of the file you want to send \n >>>  ")
+        file = pathlib.Path(fileToSend)
+        if file.exists():
+            print("File exists. Preparing the file to send...")
+            tcpsockobj.send(b'Exists')
+            udpSocketObject = socket(AF_INET, SOCK_DGRAM)
+            udpSocketObject.sendto(bytes(fileToSend, 'ascii'), (udpIP, udpPort))
+            print("UDP Connection opened port number: ", udpPort)
 
+            print("Waiting for server file creation confirmation...")
+            tcpData = tcpsockobj.recv(1024)
+            print("File Creation Confirmed")
+
+            print("Sending %s ..." % fileToSend)
+            file = open(fileToSend, "r")
+            data = file.read(buffer)
+
+            while data:
+                if udpSocketObject.sendto(data.encode('utf-8'), (udpIP, udpPort)):
+                    data = file.read(buffer)
+                    time.sleep(0.02)  # Give receiver a bit time to save
+            print("file send complete")
+            udpSocketObject.close()
+            file.close()
+            continue
+        else:
+            print("File does not exist, exiting SEND command")
+            tcpsockobj.send(b'NotExisting')
+            tcpsockobj.close()
