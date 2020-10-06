@@ -8,7 +8,7 @@ and then echoes the message back to the client.
 import time
 import select
 from socket import *
-tcpIP = ''                                 # '' to set the default IP to localhost
+tcpIP = '192.168.1.78'                                      # '' to set the default IP to localhost
 tcpPort = 7005                               # Default port number
 udpIP = 'localhost'
 udpPort = 7006
@@ -17,7 +17,9 @@ buffer = 1024
 tcpSocketObject = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
 tcpSocketObject.bind((tcpIP, tcpPort))              # bind it to server port number
 tcpSocketObject.listen(5)
-
+tcpIP = input("$$$Server init$$$\nType bind server address >>> ")
+udpIP = tcpIP
+print('Listening...')
 while True:                                 # listen until process killed
     tcpConnection, tcpAddress = tcpSocketObject.accept()
     print('Client Connection:', tcpAddress)    # Print the connected client address
@@ -66,7 +68,7 @@ while True:                                 # listen until process killed
                         udpData, udpAddr = udpSocket.recvfrom(1024)
                         f.write(udpData)
                     else:
-                        print("%s Finish!" % file_name)
+                        print("%s File Import Finish!" % file_name)
                         udpSocket.close()
                         f.close()
                         break
