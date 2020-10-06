@@ -8,17 +8,16 @@ and then echoes the message back to the client.
 import time
 import select
 from socket import *
-tcpIP = '192.168.1.78'                                      # '' to set the default IP to localhost
+tcpIP = '192.168.1.75'                                      # '' to set the default IP to localhost
 tcpPort = 7005                               # Default port number
 udpIP = 'localhost'
 udpPort = 7006
 buffer = 1024
-
+tcpIP = input("$$$Server init$$$\nType bind server address >>> ")
+udpIP = tcpIP
 tcpSocketObject = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
 tcpSocketObject.bind((tcpIP, tcpPort))              # bind it to server port number
 tcpSocketObject.listen(5)
-tcpIP = input("$$$Server init$$$\nType bind server address >>> ")
-udpIP = tcpIP
 print('Listening...')
 while True:                                 # listen until process killed
     tcpConnection, tcpAddress = tcpSocketObject.accept()
@@ -26,12 +25,14 @@ while True:                                 # listen until process killed
     while True:
         tcpCommandFromClient = tcpConnection.recv(1024)        # read the client message
         if not tcpCommandFromClient: break
+
         if tcpCommandFromClient == b'GET':
             tcpConnection.send(b'GET Command sent, file is to be sent shortly')
             file_name = "TestFile1.txt"
             print('Client Says: ', tcpCommandFromClient)
             udpSocketObject = socket(AF_INET, SOCK_DGRAM)
 #            udpSocketObject.bind((udpIP, udpPort))
+            udpIP = tcpAddress[0]
             udpSocketObject.sendto(bytes(file_name, 'ascii'), (udpIP, udpPort))
 
             print("Waiting for client confirmation...")

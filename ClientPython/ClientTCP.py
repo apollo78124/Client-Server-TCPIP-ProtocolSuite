@@ -19,9 +19,11 @@ from socket import *
 import select
 import pathlib
 tcpserverHost = '192.168.1.75'        # Default IP to connect to
+tcpBind=''
 tcpserverPort = 7005               # Default port number
 udpPort = 7006
 udpIP = ""
+udpBind = ""
 buffer = 1024
 
 commandLineActive = True
@@ -33,7 +35,7 @@ messages = []  # Default text (ASCII) message
 #tcpsockobj = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
 #tcpsockobj.connect((tcpserverHost, tcpserverPort))   # connect to server IP + port
 
-tcpserverHost = input("### Connection Init ### \nServer Address: ")
+tcpserverHost = input("### Connection Init ### \nServer Address to Connect to: ")
 
 while commandLineActive:
     messages = []
@@ -52,7 +54,8 @@ while commandLineActive:
         print('Message from the Server:', data)
     if userCommand == "GET":
         udpSocket = socket(AF_INET, SOCK_DGRAM)
-        udpSocket.bind((udpIP, udpPort))
+        udpSocket.bind((udpBind, udpPort))
+
         print('Waiting For First UDP Data...')
         udpData, udpAddr = udpSocket.recvfrom(1024)
         if udpData:
@@ -72,6 +75,7 @@ while commandLineActive:
         udpSocket.close()
         tcpsockobj.close()
     if userCommand == "SEND":
+        udpIP = tcpserverHost
         fileToSend = input("Type the name of the file you want to send \n >>>  ")
         file = pathlib.Path(fileToSend)
         if file.exists():
