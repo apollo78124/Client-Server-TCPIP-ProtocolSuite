@@ -9,7 +9,7 @@ import time
 from socket import *
 tcpIP = ''                                 # '' to set the default IP to localhost
 tcpPort = 7005                               # Default port number
-udpIP = '127.0.0.1'
+udpIP = 'localhost'
 udpPort = 7006
 buffer = 1024
 
@@ -28,11 +28,14 @@ while True:                                 # listen until process killed
             file_name = "TestFile1.txt"
             print('Client Says: ', tcpData)
             udpSocketObject = socket(AF_INET, SOCK_DGRAM)
+#            udpSocketObject.bind((udpIP, udpPort))
             udpSocketObject.sendto(bytes(file_name, 'ascii'), (udpIP, udpPort))
-#           udpSocketObject.bind((udpIP, udpPort))
-            print("UDP Port: ", udpPort)
-            print ("Sending %s ..." % file_name)
 
+            print("Waiting for client confirmation...")
+            tcpData = tcpConnection.recv(1024)
+            print("UDP Port: ", udpPort)
+            print("File Creation Confirmed")
+            print("Sending %s ..." % file_name)
             file = open(file_name, "r")
             data = file.read(buffer)
             while data:

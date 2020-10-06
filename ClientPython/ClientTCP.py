@@ -14,6 +14,7 @@ or
 """
 
 import sys
+import time
 from socket import *
 import select
 tcpserverHost = 'localhost'        # Default IP to connect to
@@ -53,6 +54,8 @@ while commandLineActive:
             print("File name:", udpData)
             file_name = udpData.strip()
             f = open(file_name, 'wb')
+            time.sleep(3)
+            tcpsockobj.send(bytes("File Created", 'ascii'))
             while True:
                 ready = select.select([udpSocket], [], [], 3)
                 if ready[0]:
