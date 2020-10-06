@@ -18,22 +18,26 @@ import time
 from socket import *
 import select
 import pathlib
-tcpserverHost = 'localhost'        # Default IP to connect to
+tcpserverHost = '192.168.1.75'        # Default IP to connect to
 tcpserverPort = 7005               # Default port number
 udpPort = 7006
-udpIP = "localhost"
+udpIP = ""
 buffer = 1024
 
 commandLineActive = True
+connectionSetup = True
 
 messages = []  # Default text (ASCII) message
                                 # requires bytes: b'' to convert to byte literal
 
 #tcpsockobj = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
 #tcpsockobj.connect((tcpserverHost, tcpserverPort))   # connect to server IP + port
+
+tcpserverHost = input("### Connection Init ### \nServer Address: ")
+
 while commandLineActive:
     messages = []
-    userCommand = input("command: ")
+    userCommand = input("command to server: ")
     tcpsockobj = socket(AF_INET, SOCK_STREAM)
     tcpsockobj.connect((tcpserverHost, tcpserverPort))
     if userCommand == "quit":
@@ -49,6 +53,7 @@ while commandLineActive:
     if userCommand == "GET":
         udpSocket = socket(AF_INET, SOCK_DGRAM)
         udpSocket.bind((udpIP, udpPort))
+        print('Waiting For First UDP Data...')
         udpData, udpAddr = udpSocket.recvfrom(1024)
         if udpData:
             print("File name:", udpData)
