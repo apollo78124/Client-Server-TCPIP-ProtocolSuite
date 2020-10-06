@@ -15,6 +15,8 @@ udpPort = 7006
 buffer = 1024
 tcpIP = input("$$$Server init$$$\nType bind server address >>> ")
 udpIP = tcpIP
+udpBind = ''
+tcpBind = ''
 tcpSocketObject = socket(AF_INET, SOCK_STREAM)      # Create a TCP socket object
 tcpSocketObject.bind((tcpIP, tcpPort))              # bind it to server port number
 tcpSocketObject.listen(5)
@@ -52,7 +54,7 @@ while True:                                 # listen until process killed
             break
         if tcpCommandFromClient == b'SEND':
             udpSocket = socket(AF_INET, SOCK_DGRAM)
-            udpSocket.bind((udpIP, udpPort))
+            udpSocket.bind((udpBind, udpPort))
             tcpConnection.send(b'SEND Command sent')
             tcpData = tcpConnection.recv(1024)
             if tcpData == b'NotExisting':
